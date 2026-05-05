@@ -55,6 +55,7 @@ export default function ResourceCard({ resource, canDelete }: { resource: Resour
     if (error) {
       alert('Gagal menghapus: ' + error.message);
     } else {
+      alert('Berhasil dihapus!');
       router.refresh();
     }
   };
