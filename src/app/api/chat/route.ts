@@ -1,14 +1,15 @@
 import { createGroq } from '@ai-sdk/groq';
 import { streamText, convertToModelMessages } from 'ai';
 
-const groq = createGroq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  // Initialize provider inside the handler to ensure environment variables are loaded
+  const groq = createGroq({
+    apiKey: process.env.GROQ_API_KEY,
+  });
+
   const { messages } = await req.json();
 
   const result = streamText({
