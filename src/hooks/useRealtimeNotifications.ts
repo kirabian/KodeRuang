@@ -28,7 +28,7 @@ export function useRealtimeNotifications(userId?: string) {
     async function loadNotifications() {
       const { data } = await supabase
         .from('notifications')
-        .select('*, actor:profiles!notifications_actor_id_fkey(username)')
+        .select('*, actor:profiles(username)')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20)
