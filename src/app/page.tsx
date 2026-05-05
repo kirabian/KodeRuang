@@ -65,9 +65,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
 
     // Apply sorting on the computed data
     if (sort === 'trending' || sort === 'top') {
-      displayResources = displayResources.sort((a: any, b: any) => b.score - a.score);
+      // Sort by score (votes) first, then by date
+      displayResources = displayResources.sort((a: any, b: any) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
     } else if (sort === 'discussed') {
       displayResources = displayResources.sort((a: any, b: any) => b.comment_count - a.comment_count);
+    } else {
+      // Default latest
+      displayResources = displayResources.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
     return (
