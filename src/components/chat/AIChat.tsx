@@ -6,7 +6,13 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react';
 
 export default function AIChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat() as any;
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat();
+
+  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    handleSubmit(e);
+  };
 
   return (
     <>
@@ -54,10 +60,15 @@ export default function AIChat() {
               </div>
             </div>
           )}
+          {error && (
+            <div className="text-center text-xs text-brand-accent p-2 bg-brand-accent/10 rounded-md">
+              Terjadi kesalahan: {error.message}
+            </div>
+          )}
         </div>
 
         {/* Input Form */}
-        <form onSubmit={handleSubmit} className="p-3 border-t border-brand-border bg-brand-surface flex gap-2">
+        <form onSubmit={onFormSubmit} className="p-3 border-t border-brand-border bg-brand-surface flex gap-2">
           <input
             className="flex-1 bg-brand-bg border border-brand-border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text"
             value={input}
@@ -67,7 +78,7 @@ export default function AIChat() {
           <button
             type="submit"
             disabled={isLoading || !input?.trim()}
-            className="p-2 bg-brand-primary text-brand-surface rounded-md disabled:opacity-50 hover:bg-brand-primary/90 transition-colors"
+            className="p-2 bg-brand-primary text-brand-surface rounded-md disabled:opacity-50 hover:bg-brand-primary/90 transition-colors cursor-pointer"
           >
             <Send size={18} />
           </button>
