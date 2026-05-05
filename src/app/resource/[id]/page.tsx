@@ -1,10 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { MessageSquare, ExternalLink, Share2, Flag, Terminal } from "lucide-react";
+import { MessageSquare, ExternalLink, Share2, Flag } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import { notFound } from "next/navigation";
 import UpvoteButton from "@/components/resource/UpvoteButton";
+import CommentSection from "@/components/resource/CommentSection";
 
 export default async function ResourceDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,6 +40,19 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
     
     initialHasVoted = !!vote;
   }
+
+  // Fetch comments
+  const { data: comments } = await supabase
+    .from('comments')
+    .select(`
+      *,
+      profiles:user_id (
+        username,
+        avatar_url
+      )
+    `)
+    .eq('resource_id', id)
+    .order('created_at', { ascending: false });
 
   const domain = new URL(resource.url).hostname.replace('www.', '');
 
@@ -113,27 +127,6 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
             </button>
           </div>
         </div>
-      </div>
-
-  // Fetch comments
-  const { data: comments } = await supabase
-    .from('comments')
-    .select(`
-      *,
-      profiles:user_id (
-        username,
-        avatar_url
-      )
-    `)
-    .eq('resource_id', id)
-    .order('created_at', { ascending: false });
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
-      {/* Detail Card ... (omitted for brevity) */}
-      <div className="bg-brand-surface border border-brand-border rounded-md p-6 sm:p-8 flex gap-6">
-        <UpvoteButton resourceId={resource.id} initialScore={resource.score} />
-        {/* ... (rest of detail card) */}
       </div>
 
       <CommentSection 
