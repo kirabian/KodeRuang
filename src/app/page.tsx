@@ -77,6 +77,19 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
       displayResources = displayResources.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
+    // Get current user role
+    let userRole = 'user';
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+      userRole = profile?.role || 'user';
+    }
+
+    const canModerated = userRole === 'admin' || userRole === 'moderator';
+
     return (
     <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
       {/* Main Feed */}
@@ -145,7 +158,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
               <ResourceCard 
                 key={resource.id} 
                 resource={resource} 
-                canDelete={userProfile?.role === 'admin' || userProfile?.role === 'moderator' || user?.id === resource.user_id}
+                canDelete={canModerated}
               />
             ))}
           </div>

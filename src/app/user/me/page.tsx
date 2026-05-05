@@ -51,6 +51,7 @@ export default async function MyProfile() {
     }));
 
     const userTier = getTierFromPoints(profile?.reputation || 0);
+    const canModerated = profile?.role === 'admin' || profile?.role === 'moderator';
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -87,7 +88,7 @@ export default async function MyProfile() {
                       <ResourceCard 
                         key={resource.id} 
                         resource={resource as any} 
-                        canDelete={true} 
+                        canDelete={canModerated} 
                       />
                     ))
                   )}
