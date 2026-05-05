@@ -20,7 +20,7 @@ export default function AIChat() {
   }, [messages, isOpen]);
 
   const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input?.trim() || isLoading) return;
     
     const content = input.trim();
     // Clear input immediately for better UX

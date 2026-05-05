@@ -111,9 +111,18 @@ export default function CommentSection({ resourceId, initialComments, commentCou
 
       if (error) throw error;
 
-      await supabase.from('resources').update({ 
-        comment_count: comments.length + 1 
-      }).eq('id', resourceId);
+      // 2. SYNC: Get actual total count from comments table
+      const { count, error: countError } = await supabase
+        .from('comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', resourceId);
+
+      if (!countError && count !== null) {
+        // Update resources table with real count
+        await supabase.from('resources').update({ 
+          comment_count: count 
+        }).eq('id', resourceId);
+      }
 
       setComments(prev => [data, ...prev]);
       setNewComment('');
