@@ -1,5 +1,4 @@
-'use client';
-
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -39,15 +38,18 @@ export default function ResourceCard({
   canDelete?: boolean,
   onDelete?: (id: string) => void
 }) {
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   let domain = 'link';
   try {
     domain = new URL(resource.url).hostname.replace('www.', '');
-  } catch (e) {
-    // Fallback if URL is invalid
-  }
+  } catch (e) {}
 
   const username = resource.submitted_by?.username || 'anonim';
   const userTier = getTierFromPoints(resource.submitted_by?.reputation || 0);
@@ -63,7 +65,6 @@ export default function ResourceCard({
     if (error) {
       alert('Gagal menghapus: ' + error.message);
     } else {
-      alert('Berhasil dihapus!');
       if (onDelete) {
         onDelete(resource.id);
       } else {
@@ -71,6 +72,10 @@ export default function ResourceCard({
       }
     }
   };
+
+  const timeAgo = mounted 
+    ? formatDistanceToNow(new Date(resource.created_at), { addSuffix: true, locale: id })
+    : '';
 
   return (
     <div className="flex gap-4 p-4 bg-brand-surface border border-brand-border rounded-md hover:border-brand-primary/30 transition-colors group relative">
@@ -95,7 +100,7 @@ export default function ResourceCard({
           </div>
           <span className="text-[10px] sm:text-xs text-brand-muted hidden sm:inline">•</span>
           <span className="text-[10px] sm:text-xs text-brand-muted">
-            {formatDistanceToNow(new Date(resource.created_at), { addSuffix: true, locale: id })}
+            {timeAgo}
           </span>
         </div>
 
