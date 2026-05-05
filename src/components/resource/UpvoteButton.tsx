@@ -34,38 +34,30 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
     try {
       if (hasVoted) {
         // Remove vote
-        const { error: voteError } = await supabase
+        await supabase
           .from('votes')
           .delete()
           .match({ user_id: user.id, resource_id: resourceId });
-
-        if (voteError) throw voteError;
-
-        // Update resources table score
-        const newScore = Math.max(0, score - 1);
-        await supabase.from('resources').update({ score: newScore }).eq('id', resourceId);
-
-        setScore(newScore);
-        setHasVoted(false);
       } else {
         // Add vote
         const { error: voteError } = await supabase
           .from('votes')
           .insert({ user_id: user.id, resource_id: resourceId, vote_type: 1 });
-
+        
         if (voteError && voteError.code !== '23505') throw voteError;
+      }
 
-        // Update resources table score
-        const newScore = score + 1;
-        await supabase.from('resources').update({ score: newScore }).eq('id', resourceId);
+      // SYNC: Get actual total count from votes table
+      const { count, error: countError } = await supabase
+        .from('votes')
+        .select('*', { count: 'exact', head: true })
+        .eq('resource_id', resourceId);
 
-        if (voteError?.code === '23505') {
-          // Already voted, just sync UI state without double counting
-          setHasVoted(true);
-        } else {
-          setScore(newScore);
-          setHasVoted(true);
-        }
+      if (!countError && count !== null) {
+        // Update resources table score with real count
+        await supabase.from('resources').update({ score: count }).eq('id', resourceId);
+        setScore(count);
+        setHasVoted(!hasVoted);
       }
       
       router.refresh();

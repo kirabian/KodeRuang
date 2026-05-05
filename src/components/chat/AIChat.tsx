@@ -7,7 +7,7 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react';
 export default function AIChat() {
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat() as any;
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error, append } = useChat() as any;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -19,24 +19,33 @@ export default function AIChat() {
     }
   }, [messages, isOpen]);
 
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    const content = input.trim();
+    // Clear input immediately for better UX
+    handleInputChange({ target: { value: '' } } as any);
+    
+    try {
+      await append({
+        role: 'user',
+        content
+      });
+    } catch (e) {
+      console.error('AIChat: Send failed', e);
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (input.trim() && !isLoading) {
-        handleSubmit(e as any);
-      }
+      sendMessage();
     }
   };
 
   const manualSubmit = () => {
     console.log('AIChat: Manual button click trigger');
-    if (input.trim() && !isLoading) {
-      const fakeEvent = { 
-        preventDefault: () => {},
-        target: { input: { value: input } } 
-      } as any;
-      handleSubmit(fakeEvent);
-    }
+    sendMessage();
   };
 
   return (
