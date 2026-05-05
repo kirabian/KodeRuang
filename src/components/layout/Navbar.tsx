@@ -8,7 +8,10 @@ export default async function Navbar() {
     const supabase = await createClient();
     const { data: userData } = await supabase.auth.getUser();
     user = userData?.user;
-  } catch (e) {
+  } catch (e: any) {
+    if (e.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw e;
+    }
     console.error("Navbar auth error:", e);
   }
 

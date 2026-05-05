@@ -3,7 +3,7 @@ import { Filter } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-export const revalidate = 0; // Disable static caching for MVP
+export const dynamic = 'force-dynamic';
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ verified?: string, sort?: string }> }) {
   try {
@@ -182,12 +182,15 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
       </div>
     );
   } catch (error: any) {
+    if (error.digest === 'DYNAMIC_SERVER_USAGE') {
+      throw error;
+    }
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-bg p-4">
         <div className="max-w-md w-full bg-brand-surface border border-brand-border rounded-lg p-6 shadow-xl">
           <h1 className="text-xl font-bold text-brand-accent mb-4">Terjadi Kesalahan (500)</h1>
           <p className="text-sm text-brand-text mb-6">
-            Aplikasi mengalami kendala saat memuat data. Silakan coba muat ulang atau hubungi admin.
+            Aplikasi mengalami kendala saat memuat data.
           </p>
           <div className="bg-brand-bg p-3 rounded font-mono text-[10px] text-brand-muted break-all">
             {error.message || 'Unknown Error'}
