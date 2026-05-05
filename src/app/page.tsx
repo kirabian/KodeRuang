@@ -203,4 +203,3 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
     );
   }
 }
-}
