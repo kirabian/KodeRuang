@@ -66,7 +66,7 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
 
           <div className="flex flex-wrap items-center gap-2 mb-8">
             <span className="text-sm text-brand-muted mr-2">Tech Stack:</span>
-            {resource.tech_stack_tags.map((tag) => (
+            {resource.tech_stack_tags.map((tag: string) => (
               <Link 
                 key={tag} 
                 href={`/stack/${tag.toLowerCase()}`}

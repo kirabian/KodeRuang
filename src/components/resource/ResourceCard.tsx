@@ -63,7 +63,7 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {resource.tech_stack_tags.map((tag) => (
+            {resource.tech_stack_tags.map((tag: string) => (
               <Link 
                 key={tag} 
                 href={`/stack/${tag.toLowerCase()}`}

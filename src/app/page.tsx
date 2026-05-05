@@ -135,7 +135,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
             <h2 className="font-bold text-brand-text">Kategori Populer</h2>
           </div>
           <div className="flex flex-col gap-2">
-            {["Frontend", "Backend", "Fullstack", "UI/UX", "Database", "AI/ML"].map((cat) => (
+            {["Frontend", "Backend", "Fullstack", "UI/UX", "Database", "AI/ML"].map((cat: string) => (
               <a key={cat} href={`/category/${cat.toLowerCase()}`} className="flex justify-between items-center text-sm py-1.5 px-2 -mx-2 hover:bg-brand-bg rounded-md transition-colors group">
                 <span className="text-brand-text group-hover:text-brand-primary">{cat}</span>
                 <span className="text-xs text-brand-muted bg-brand-code px-1.5 py-0.5 rounded-sm">
@@ -150,7 +150,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
         <div className="bg-brand-surface border border-brand-border rounded-md p-5">
           <h2 className="font-bold text-brand-text mb-4">Trending Stacks</h2>
           <div className="flex flex-wrap gap-2">
-            {["Next.js", "TypeScript", "Tailwind", "React", "Supabase", "PostgreSQL", "Node.js"].map((stack) => (
+            {["Next.js", "TypeScript", "Tailwind", "React", "Supabase", "PostgreSQL", "Node.js"].map((stack: string) => (
               <a key={stack} href={`/stack/${stack.toLowerCase()}`} className="text-xs font-mono text-brand-muted bg-brand-code px-2 py-1 rounded-md hover:bg-brand-border transition-colors">
                 #{stack}
               </a>
