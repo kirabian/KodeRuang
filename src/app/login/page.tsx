@@ -8,17 +8,40 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   const login = async (formData: FormData) => {
     'use server';
-    const email = formData.get('email') as string;
+    const identifier = formData.get('identifier') as string;
     const password = formData.get('password') as string;
     
     const supabase = await createClient();
+
+    let loginEmail = identifier;
+
+    // Jika identifier bukan email (tidak mengandung @), cari email berdasarkan username
+    if (!identifier.includes('@')) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('username', identifier)
+        .single();
+
+      if (profile?.email) {
+        loginEmail = profile.email;
+      } else {
+        return redirect('/login?error=Username tidak ditemukan.');
+      }
+    }
+    
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password,
     });
 
     if (error) {
-      return redirect(`/login?error=${encodeURIComponent(error.message)}`);
+      // Terjemahkan error umum agar lebih user-friendly
+      let message = error.message;
+      if (message === 'Invalid login credentials') {
+        message = 'Username atau Password salah.';
+      }
+      return redirect(`/login?error=${encodeURIComponent(message)}`);
     }
 
     return redirect('/');
@@ -26,10 +49,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="max-w-md mx-auto px-4 py-16">
-      <div className="bg-brand-surface border border-brand-border rounded-md p-8">
+      <div className="bg-brand-surface border border-brand-border rounded-md p-8 shadow-lg">
         <h1 className="text-2xl font-bold text-brand-text mb-2 text-center">Masuk ke KodeRuang</h1>
         <p className="text-brand-muted text-sm text-center mb-8">
-          Masuk untuk membagikan resource atau berdiskusi.
+          Gunakan username dan password kamu untuk masuk.
         </p>
 
         {error && (
@@ -38,34 +61,36 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           </div>
         )}
 
-        <form action={login} className="space-y-4">
+        <form action={login} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-brand-text mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-brand-text mb-1.5">Username</label>
             <input 
-              name="email"
-              type="email" 
+              name="identifier"
+              type="text" 
               required
-              placeholder="developer@example.com"
-              className="w-full bg-brand-bg border border-brand-border rounded-md py-2 px-3 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text"
+              placeholder="Username kamu"
+              className="w-full bg-brand-bg border border-brand-border rounded-md py-2.5 px-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-brand-text mb-1.5">Password</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-brand-text">Password</label>
+            </div>
             <input 
               name="password"
               type="password" 
               required
               placeholder="••••••••"
-              className="w-full bg-brand-bg border border-brand-border rounded-md py-2 px-3 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text"
+              className="w-full bg-brand-bg border border-brand-border rounded-md py-2.5 px-3.5 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text transition-all"
             />
           </div>
-          <SubmitButton className="bg-brand-primary text-brand-surface hover:bg-brand-primary/90 mt-2">
-            Masuk
+          <SubmitButton className="bg-brand-primary text-brand-surface hover:bg-brand-primary/90 mt-2 py-2.5">
+            Masuk Sekarang
           </SubmitButton>
         </form>
 
-        <p className="text-sm text-brand-muted text-center mt-6">
-          Belum punya akun? <Link href="/register" className="text-brand-primary font-medium hover:underline">Daftar sekarang</Link>
+        <p className="text-sm text-brand-muted text-center mt-8 pt-6 border-t border-brand-border">
+          Belum punya akun? <Link href="/register" className="text-brand-primary font-medium hover:underline">Daftar komunitas</Link>
         </p>
       </div>
     </div>
