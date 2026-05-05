@@ -1,5 +1,9 @@
-import { groq } from '@ai-sdk/groq';
+import { createGroq } from '@ai-sdk/groq';
 import { streamText, convertToModelMessages } from 'ai';
+
+const groq = createGroq({
+  apiKey: process.env.GROQ_API_KEY,
+});
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
