@@ -20,6 +20,7 @@ export type Resource = {
   score: number;
   comment_count: number;
   created_at: string;
+  has_voted?: boolean;
 };
 
 export default function ResourceCard({ resource }: { resource: Resource }) {
@@ -28,7 +29,11 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
   return (
     <div className="flex gap-4 p-4 bg-brand-surface border border-brand-border rounded-md hover:border-brand-primary/30 transition-colors group">
       {/* Upvote Column */}
-      <UpvoteButton resourceId={resource.id} initialScore={resource.score} />
+      <UpvoteButton 
+        resourceId={resource.id} 
+        initialScore={resource.score} 
+        initialHasVoted={resource.has_voted} 
+      />
 
       {/* Content Column */}
       <div className="flex-1 min-w-0">

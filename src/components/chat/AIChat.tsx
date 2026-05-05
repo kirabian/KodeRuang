@@ -69,19 +69,33 @@ export default function AIChat() {
         </div>
 
         {/* Input Form */}
-        <form onSubmit={onFormSubmit} className="p-3 border-t border-brand-border bg-brand-surface flex gap-2">
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log('AIChat: Submitting...', input);
+            if (input.trim() && !isLoading) {
+              handleSubmit(e);
+            }
+          }} 
+          className="p-3 border-t border-brand-border bg-brand-surface flex gap-2 relative z-[60]"
+        >
           <input
             className="flex-1 bg-brand-bg border border-brand-border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text"
             value={input}
             placeholder="Tanya sesuatu..."
             onChange={handleInputChange}
+            disabled={isLoading}
           />
           <button
             type="submit"
             disabled={isLoading || !input?.trim()}
-            className="p-2 bg-brand-primary text-brand-surface rounded-md disabled:opacity-50 hover:bg-brand-primary/90 transition-colors cursor-pointer"
+            className="p-2 bg-brand-primary text-brand-surface rounded-md disabled:opacity-50 hover:bg-brand-primary/90 transition-all cursor-pointer active:scale-95 flex items-center justify-center min-w-[40px]"
           >
-            <Send size={18} />
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-brand-surface border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              <Send size={18} />
+            )}
           </button>
         </form>
       </div>

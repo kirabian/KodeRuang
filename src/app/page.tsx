@@ -9,6 +9,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
   const { verified, sort = 'latest' } = await searchParams;
   const supabase = await createClient();
   
+  const { data: { user } } = await supabase.auth.getUser();
+  
   // Base query
   let query = supabase
     .from('resources')
@@ -27,10 +29,25 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
   }
 
   const { data: resources, error } = await query;
+  
+  // Get user votes if logged in
+  let userVotes: string[] = [];
+  if (user && resources) {
+    const { data: votes } = await supabase
+      .from('votes')
+      .select('resource_id')
+      .eq('user_id', user.id)
+      .in('resource_id', resources.map(r => r.id));
+    
+    if (votes) {
+      userVotes = votes.map(v => v.resource_id);
+    }
+  }
 
-  // For testing, if Supabase is empty, we fallback to an empty array
-  // If there's an error, maybe the table isn't created yet
-  const displayResources = resources || [];
+  const displayResources = (resources || []).map(r => ({
+    ...r,
+    has_voted: userVotes.includes(r.id)
+  }));
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
