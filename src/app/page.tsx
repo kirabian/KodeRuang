@@ -187,7 +187,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
               </div>
               <div className="justify-between flex items-center text-sm">
                 <span className="text-brand-muted">Active Member</span>
-                <span className="font-bold text-brand-text">324</span>
+                <span className="font-bold text-brand-text">
+                  {/* Fetch real member count */}
+                  {await (async () => {
+                    const { count } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+                    return count || 0;
+                  })()}
+                </span>
               </div>
             </div>
             

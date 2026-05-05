@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getTierFromPoints } from '@/lib/utils/tiers';
 import { Award, Shield, Link as LinkIcon } from 'lucide-react';
+import ResourceCard from '@/components/resource/ResourceCard';
 
 export default async function MyProfile() {
   try {
@@ -18,6 +19,36 @@ export default async function MyProfile() {
       .select('*')
       .eq('id', user.id)
       .single();
+
+    // Fetch user's resources
+    const { data: resources } = await supabase
+      .from('resources')
+      .select(`
+        *,
+        submitted_by:profiles(username, avatar_url, reputation),
+        votes(count),
+        comments(count)
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    // Fetch user's votes to show vote state
+    let userVotes: string[] = [];
+    if (resources && resources.length > 0) {
+      const { data: votes } = await supabase
+        .from('votes')
+        .select('resource_id')
+        .eq('user_id', user.id)
+        .in('resource_id', resources.map(r => r.id));
+      if (votes) userVotes = votes.map(v => v.resource_id);
+    }
+
+    const displayResources = (resources || []).map(r => ({
+      ...r,
+      score: r.votes?.[0]?.count ?? r.score ?? 0,
+      comment_count: r.comments?.[0]?.count ?? r.comment_count ?? 0,
+      has_voted: userVotes.includes(r.id)
+    }));
 
     const userTier = getTierFromPoints(profile?.reputation || 0);
 
@@ -43,9 +74,24 @@ export default async function MyProfile() {
               <div className="space-y-4">
                 <h3 className="font-bold text-brand-text border-b border-brand-border pb-2 flex items-center gap-2">
                   <LinkIcon size={18} className="text-brand-primary" />
-                  Resource Saya
+                  Resource Saya ({displayResources.length})
                 </h3>
-                <p className="text-brand-muted text-sm">Belum ada resource yang di-submit.</p>
+                
+                <div className="flex flex-col gap-4 mt-4">
+                  {displayResources.length === 0 ? (
+                    <p className="text-brand-muted text-sm text-center py-8 bg-brand-bg/50 rounded-md border border-dashed border-brand-border">
+                      Belum ada resource yang di-submit.
+                    </p>
+                  ) : (
+                    displayResources.map(resource => (
+                      <ResourceCard 
+                        key={resource.id} 
+                        resource={resource as any} 
+                        canDelete={true} 
+                      />
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
