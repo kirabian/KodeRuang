@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
