@@ -1,0 +1,1 @@
+export default function AdminDashboard() { return <div className="max-w-7xl mx-auto px-4 py-8"><h1 className="text-2xl font-bold text-brand-text mb-6">Admin Dashboard</h1><div className="bg-brand-surface border border-brand-border rounded-md p-8 text-center text-brand-muted">Halaman admin sedang dalam pengembangan.</div></div>; }
