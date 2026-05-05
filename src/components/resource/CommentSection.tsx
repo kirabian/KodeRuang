@@ -111,6 +111,23 @@ export default function CommentSection({ resourceId, initialComments, commentCou
 
       if (error) throw error;
 
+      // Get resource author to notify
+      const { data: resourceData } = await supabase
+        .from('resources')
+        .select('user_id, title')
+        .eq('id', resourceId)
+        .single();
+
+      if (resourceData && resourceData.user_id !== user.id) {
+        await supabase.from('notifications').insert({
+          user_id: resourceData.user_id,
+          actor_id: user.id,
+          resource_id: resourceId,
+          type: 'comment',
+          message: `mengomentari resource: ${resourceData.title.substring(0, 30)}...`
+        });
+      }
+
       setComments(prev => [data, ...prev]);
       setNewComment('');
       router.refresh();

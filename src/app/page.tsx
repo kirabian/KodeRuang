@@ -2,6 +2,7 @@ import ResourceCard from "@/components/resource/ResourceCard";
 import { Filter } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import RealtimeResources from "@/components/resource/RealtimeResources";
 
 export const dynamic = 'force-dynamic';
 
@@ -147,21 +148,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            {displayResources.length === 0 && (
-              <div className="p-8 text-center bg-brand-surface border border-brand-border rounded-md text-brand-muted">
-                Belum ada resource. Jadilah yang pertama submit!
-              </div>
-            )}
-
-            {displayResources.map((resource: any) => (
-              <ResourceCard 
-                key={resource.id} 
-                resource={resource} 
-                canDelete={canModerated}
-              />
-            ))}
-          </div>
+        <div className="flex flex-col gap-4">
+          <RealtimeResources 
+            initialResources={displayResources as any} 
+            userRole={userRole} 
+            currentUserId={user?.id}
+          />
+        </div>
         </div>
 
         {/* Sidebar */}

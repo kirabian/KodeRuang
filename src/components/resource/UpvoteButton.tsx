@@ -65,6 +65,23 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
           // Optimistic UI: increment score locally
           setScore(prev => prev + 1);
           setHasVoted(true);
+
+          // Get resource author to notify
+          const { data: resourceData } = await supabase
+            .from('resources')
+            .select('user_id, title')
+            .eq('id', resourceId)
+            .single();
+
+          if (resourceData && resourceData.user_id !== user.id) {
+            await supabase.from('notifications').insert({
+              user_id: resourceData.user_id,
+              actor_id: user.id,
+              resource_id: resourceId,
+              type: 'upvote',
+              message: `menyukai resource: ${resourceData.title.substring(0, 30)}...`
+            });
+          }
         }
       }
 

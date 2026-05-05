@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { Search, PlusCircle, User, Terminal, LogOut } from 'lucide-react';
+import { Search, PlusCircle, User, Terminal, LogOut, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import NotificationBell from './NotificationBell';
 
 export default async function Navbar() {
   let user = null;
@@ -57,6 +58,9 @@ export default async function Navbar() {
                 <PlusCircle size={16} />
                 <span>Submit</span>
               </Link>
+              
+              <NotificationBell userId={user.id} />
+
               <Link 
                 href="/user/me" 
                 className="flex items-center justify-center w-9 h-9 rounded-full bg-brand-bg border border-brand-border text-brand-primary font-bold text-sm hover:border-brand-primary transition-colors"
