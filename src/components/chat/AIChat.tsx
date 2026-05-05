@@ -20,14 +20,14 @@ export default function AIChat() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 p-4 bg-brand-primary text-brand-surface rounded-full shadow-lg hover:bg-brand-primary/90 transition-all z-50 ${isOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100'}`}
+        className={`fixed bottom-6 right-6 p-4 bg-brand-primary text-brand-surface rounded-full shadow-lg hover:bg-brand-primary/90 transition-all z-[100] ${isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'}`}
       >
         <MessageCircle size={24} />
       </button>
 
       {/* Chat Window */}
       <div
-        className={`fixed bottom-6 right-6 w-[350px] h-[500px] bg-brand-surface border border-brand-border rounded-lg shadow-xl flex flex-col overflow-hidden z-50 transition-all origin-bottom-right duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}
+        className={`fixed bottom-6 right-6 w-[350px] h-[500px] bg-brand-surface border border-brand-border rounded-lg shadow-xl flex flex-col overflow-hidden z-[110] transition-all origin-bottom-right duration-300 ${isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'}`}
       >
         {/* Header */}
         <div className="bg-brand-primary text-brand-surface p-4 flex justify-between items-center">
@@ -77,7 +77,7 @@ export default function AIChat() {
               handleSubmit(e);
             }
           }} 
-          className="p-3 border-t border-brand-border bg-brand-surface flex gap-2 relative z-[60]"
+          className="p-3 border-t border-brand-border bg-brand-surface flex gap-2 relative z-[120]"
         >
           <input
             className="flex-1 bg-brand-bg border border-brand-border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text"
