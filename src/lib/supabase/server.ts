@@ -22,7 +22,7 @@ export async function createClient() {
             cookieStore.set(name, value, options as CookieOptions)
           })
         } catch {
-          // Aman diabaikan kalau dipanggil dari Server Component
+          // Ignore when called from a Server Component
         }
       },
     },
