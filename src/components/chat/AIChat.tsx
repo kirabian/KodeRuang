@@ -6,7 +6,7 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react';
 
 export default function AIChat() {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat() as any;
 
   const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
