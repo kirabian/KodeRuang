@@ -56,7 +56,7 @@ export default async function MyProfile() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-brand-text mb-6">Profil Saya</h1>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Main Info */}
           <div className="md:col-span-2 space-y-6">
@@ -77,7 +77,7 @@ export default async function MyProfile() {
                   <LinkIcon size={18} className="text-brand-primary" />
                   Resource Saya ({displayResources.length})
                 </h3>
-                
+
                 <div className="flex flex-col gap-4 mt-4">
                   {displayResources.length === 0 ? (
                     <p className="text-brand-muted text-sm text-center py-8 bg-brand-bg/50 rounded-md border border-dashed border-brand-border">
@@ -85,10 +85,10 @@ export default async function MyProfile() {
                     </p>
                   ) : (
                     displayResources.map(resource => (
-                      <ResourceCard 
-                        key={resource.id} 
-                        resource={resource as any} 
-                        canDelete={canModerated} 
+                      <ResourceCard
+                        key={resource.id}
+                        resource={resource as any}
+                        canDelete={canModerated}
                       />
                     ))
                   )}
@@ -104,7 +104,7 @@ export default async function MyProfile() {
                 <Award size={18} className="text-yellow-500" />
                 Status Kurator
               </h3>
-              
+
               <div className="text-center py-4 bg-brand-bg rounded-md border border-brand-border/50 mb-4">
                 <div className={`text-lg font-black uppercase tracking-widest ${userTier.color}`}>
                   {userTier.name}

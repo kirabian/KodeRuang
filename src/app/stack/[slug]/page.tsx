@@ -1,4 +1,4 @@
-export const dynamic = force-dynamic;
+export const dynamic = 'force-dynamic'
 
 export default async function StackPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

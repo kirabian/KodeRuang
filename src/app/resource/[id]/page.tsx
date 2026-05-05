@@ -1,4 +1,4 @@
-export const dynamic = force-dynamic;
+export const dynamic = 'force-dynamic'
 
 import { createClient } from "@/lib/supabase/server";
 import { MessageSquare, ExternalLink, Share2, Flag } from "lucide-react";
