@@ -2,23 +2,23 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 
+// Hardcoded fallbacks for reliability on Cloudflare
+const FB_URL = 'https://qryzmmcwswxqmjtdphtm.supabase.co';
+const FB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyeXptbWN3c3d4cW1qdGRwaHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5MTE2MzQsImV4cCI6MjA5MzQ4NzYzNH0.JVE3uyg0zwMfkmn2-WcjN1c7X5BbmgaQy-Okbzvd6Bc';
+
 export async function createClient() {
   let cookieStore;
   try {
     cookieStore = await cookies();
   } catch (e: any) {
-    // During static generation, cookies() might throw. 
-    // We must rethrow if it's a Next.js dynamic error.
     if (e.digest === 'DYNAMIC_SERVER_USAGE') {
       throw e;
     }
-    // Otherwise ignore or handle
   }
 
-  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FB_URL;
+  let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FB_ANON;
 
-  // Try to get from Cloudflare bindings if process.env is empty
   try {
     const cf = getCloudflareContext();
     if (cf?.env) {
@@ -26,16 +26,7 @@ export async function createClient() {
       supabaseAnonKey = (cf.env as any).NEXT_PUBLIC_SUPABASE_ANON_KEY || supabaseAnonKey;
     }
   } catch (e) {
-    // Ignore error when not in CF context
-  }
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    // Don't throw, just return a client that will fail on use to avoid crashing the whole worker on boot
-    return createServerClient(
-      supabaseUrl || 'https://placeholder.supabase.co',
-      supabaseAnonKey || 'placeholder',
-      { cookies: { getAll: () => [], setAll: () => {} } }
-    );
+    // Not in CF
   }
 
   return createServerClient(
@@ -52,7 +43,7 @@ export async function createClient() {
               cookieStore?.set(name, value, options)
             )
           } catch {
-            // Ignore cookie setting errors in server components
+            // Ignore cookie errors
           }
         },
       },
