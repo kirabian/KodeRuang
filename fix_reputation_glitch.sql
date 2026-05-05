@@ -38,22 +38,34 @@ FOR EACH ROW EXECUTE PROCEDURE handle_vote_reputation();
 
 -- 4. Also fix Resource/Comment deletion to subtract points
 DROP TRIGGER IF EXISTS on_resource_created_rep ON resources;
+DROP TRIGGER IF EXISTS on_resource_change_rep ON resources;
+
 CREATE OR REPLACE FUNCTION public.handle_resource_reputation()
 RETURNS TRIGGER AS $$
+DECLARE
+    total_upvotes INTEGER;
 BEGIN
     IF (TG_OP = 'INSERT') THEN
         UPDATE profiles SET reputation = reputation + 10 WHERE id = NEW.user_id;
         RETURN NEW;
     ELSIF (TG_OP = 'DELETE') THEN
-        UPDATE profiles SET reputation = GREATEST(0, reputation - 10) WHERE id = OLD.user_id;
+        -- Calculate upvotes before the resource is gone
+        SELECT count(*) INTO total_upvotes FROM votes WHERE resource_id = OLD.id AND vote_type = 1;
+        
+        -- Subtract resource creation points (10) AND all vote points (total * 5)
+        UPDATE profiles 
+        SET reputation = GREATEST(0, reputation - 10 - (total_upvotes * 5)) 
+        WHERE id = OLD.user_id;
+        
         RETURN OLD;
     END IF;
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Use BEFORE DELETE so we can count the votes before they are cascaded
 CREATE TRIGGER on_resource_change_rep 
-AFTER INSERT OR DELETE ON resources 
+BEFORE DELETE OR AFTER INSERT ON resources 
 FOR EACH ROW EXECUTE PROCEDURE handle_resource_reputation();
 
 DROP TRIGGER IF EXISTS on_comment_created_rep ON comments;
