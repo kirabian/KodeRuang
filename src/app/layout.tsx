@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
-import AIChat from "@/components/chat/AIChat";
+import dynamic from 'next/dynamic';
+const AIChat = dynamic(() => import('@/components/chat/AIChat'), { ssr: false });
 
 const inter = Inter({
   variable: "--font-sans",
