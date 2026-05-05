@@ -16,7 +16,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
     .from('resources')
     .select(`
       *,
-      submitted_by:profiles!inner(username, avatar_url),
+      submitted_by:profiles(username, avatar_url),
       votes(count),
       comments(count)
     `)

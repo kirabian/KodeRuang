@@ -60,7 +60,12 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
     .eq('resource_id', id)
     .order('created_at', { ascending: false });
 
-  const domain = new URL(resource.url).hostname.replace('www.', '');
+  let domain = 'link';
+  try {
+    domain = new URL(resource.url).hostname.replace('www.', '');
+  } catch (e) {
+    // Fallback
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -88,7 +93,7 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-6 text-sm text-brand-muted">
             <span className="flex items-center gap-1.5">
-              Oleh <Link href={`/user/${resource.submitted_by.username}`} className="font-medium text-brand-text hover:text-brand-primary transition-colors">{resource.submitted_by.username}</Link>
+              Oleh <Link href={`/user/${resource.submitted_by?.username || 'anonim'}`} className="font-medium text-brand-text hover:text-brand-primary transition-colors">{resource.submitted_by?.username || 'anonim'}</Link>
             </span>
             <span>•</span>
             <span>{formatDistanceToNow(new Date(resource.created_at), { addSuffix: true, locale: idLocale })}</span>

@@ -24,7 +24,14 @@ export type Resource = {
 };
 
 export default function ResourceCard({ resource }: { resource: Resource }) {
-  const domain = new URL(resource.url).hostname.replace('www.', '');
+  let domain = 'link';
+  try {
+    domain = new URL(resource.url).hostname.replace('www.', '');
+  } catch (e) {
+    // Fallback if URL is invalid
+  }
+
+  const username = resource.submitted_by?.username || 'anonim';
 
   return (
     <div className="flex gap-4 p-4 bg-brand-surface border border-brand-border rounded-md hover:border-brand-primary/30 transition-colors group">
@@ -43,7 +50,7 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
           </span>
           <span className="text-xs text-brand-muted">•</span>
           <span className="text-xs text-brand-muted">
-            oleh <Link href={`/user/${resource.submitted_by.username}`} className="hover:text-brand-primary font-medium">{resource.submitted_by.username}</Link>
+            oleh <Link href={`/user/${username}`} className="hover:text-brand-primary font-medium">{username}</Link>
           </span>
           <span className="text-xs text-brand-muted">•</span>
           <span className="text-xs text-brand-muted">
