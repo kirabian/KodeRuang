@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Terminal } from 'lucide-react';
+import { Terminal, Copy, Check } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface Comment {
   id: string;
@@ -25,6 +27,52 @@ interface CommentSectionProps {
   initialComments: Comment[];
   commentCount: number;
 }
+
+const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
+  const [copied, setCopied] = useState(false);
+  const match = /language-(\w+)/.exec(className || '');
+  const content = String(children).replace(/\n$/, '');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!inline && match) {
+    return (
+      <div className="relative group/code my-4">
+        <div className="absolute right-2 top-2 z-10 opacity-0 group-hover/code:opacity-100 transition-opacity">
+          <button
+            onClick={handleCopy}
+            className="flex items-center gap-1.5 px-2 py-1 bg-brand-bg/80 border border-brand-border rounded text-[10px] font-bold text-brand-text hover:bg-brand-primary hover:text-brand-surface transition-all"
+          >
+            {copied ? (
+              <><Check size={12} /> Copied!</>
+            ) : (
+              <><Copy size={12} /> Copy</>
+            )}
+          </button>
+        </div>
+        <SyntaxHighlighter
+          style={vscDarkPlus}
+          language={match[1]}
+          PreTag="div"
+          className="rounded-md !bg-brand-code !border !border-brand-border !m-0"
+          {...props}
+        >
+          {content}
+        </SyntaxHighlighter>
+      </div>
+    );
+  }
+
+  return (
+    <code className="bg-brand-code px-1.5 py-0.5 rounded text-brand-primary font-mono text-[0.9em]" {...props}>
+      {children}
+    </code>
+  );
+};
 
 export default function CommentSection({ resourceId, initialComments, commentCount }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>(initialComments);
@@ -45,7 +93,6 @@ export default function CommentSection({ resourceId, initialComments, commentCou
 
     setLoading(true);
     try {
-      // 1. Insert comment
       const { data, error } = await supabase
         .from('comments')
         .insert({
@@ -64,7 +111,6 @@ export default function CommentSection({ resourceId, initialComments, commentCou
 
       if (error) throw error;
 
-      // 2. Update resource comment count
       await supabase.from('resources').update({ 
         comment_count: comments.length + 1 
       }).eq('id', resourceId);
@@ -84,7 +130,6 @@ export default function CommentSection({ resourceId, initialComments, commentCou
     <div className="bg-brand-surface border border-brand-border rounded-md p-6 sm:p-8">
       <h2 className="text-xl font-bold text-brand-text mb-6">Komentar ({comments.length})</h2>
       
-      {/* Comment Form */}
       <form onSubmit={handleSubmit} className="mb-8 flex gap-4">
         <div className="w-10 h-10 rounded-full bg-brand-bg border border-brand-border flex items-center justify-center shrink-0">
           <Terminal size={20} className="text-brand-muted" />
@@ -94,13 +139,13 @@ export default function CommentSection({ resourceId, initialComments, commentCou
             rows={4}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Tambahkan komentar. Mendukung Markdown (```) dan link..." 
+            placeholder="Tambahkan komentar. Gunakan ``` untuk kode..." 
             className="w-full bg-brand-bg border border-brand-border rounded-md py-3 px-4 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-brand-text resize-y font-mono mb-3"
             required
           />
           <div className="flex justify-between items-center">
             <span className="text-xs text-brand-muted">
-              Tip: Gunakan triple backtick (```) untuk menulis kode.
+              Tip: Gunakan triple backtick (```) untuk blok kode.
             </span>
             <button 
               type="submit"
@@ -113,7 +158,6 @@ export default function CommentSection({ resourceId, initialComments, commentCou
         </div>
       </form>
 
-      {/* Comment List */}
       <div className="space-y-6">
         {comments.length === 0 ? (
           <div className="text-center py-12 text-brand-muted border-t border-brand-border border-dashed">
@@ -135,8 +179,13 @@ export default function CommentSection({ resourceId, initialComments, commentCou
                       {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: idLocale })}
                     </span>
                   </div>
-                  <div className="text-sm text-brand-text leading-relaxed prose prose-invert prose-sm max-w-none prose-pre:bg-brand-code prose-pre:border prose-pre:border-brand-border">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <div className="text-sm text-brand-text leading-relaxed prose prose-invert prose-sm max-w-none">
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code: CodeBlock
+                      }}
+                    >
                       {comment.content}
                     </ReactMarkdown>
                   </div>
