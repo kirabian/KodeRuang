@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Comment {
   id: string;
@@ -43,6 +45,7 @@ export default function CommentSection({ resourceId, initialComments, commentCou
 
     setLoading(true);
     try {
+      // 1. Insert comment
       const { data, error } = await supabase
         .from('comments')
         .insert({
@@ -60,6 +63,11 @@ export default function CommentSection({ resourceId, initialComments, commentCou
         .single();
 
       if (error) throw error;
+
+      // 2. Update resource comment count
+      await supabase.from('resources').update({ 
+        comment_count: comments.length + 1 
+      }).eq('id', resourceId);
 
       setComments(prev => [data, ...prev]);
       setNewComment('');
@@ -86,13 +94,13 @@ export default function CommentSection({ resourceId, initialComments, commentCou
             rows={4}
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Tambahkan komentar. Mendukung Markdown dan code block..." 
+            placeholder="Tambahkan komentar. Mendukung Markdown (```) dan link..." 
             className="w-full bg-brand-bg border border-brand-border rounded-md py-3 px-4 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-brand-text resize-y font-mono mb-3"
             required
           />
           <div className="flex justify-between items-center">
             <span className="text-xs text-brand-muted">
-              Tip: Gunakan ``` untuk menulis kode.
+              Tip: Gunakan triple backtick (```) untuk menulis kode.
             </span>
             <button 
               type="submit"
@@ -121,14 +129,16 @@ export default function CommentSection({ resourceId, initialComments, commentCou
               </div>
               <div className="flex-1">
                 <div className="bg-brand-bg border border-brand-border rounded-md p-4">
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center gap-2 mb-3">
                     <span className="font-bold text-brand-text">{comment.profiles?.username}</span>
                     <span className="text-xs text-brand-muted">
                       {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: idLocale })}
                     </span>
                   </div>
-                  <div className="text-sm text-brand-text leading-relaxed whitespace-pre-wrap">
-                    {comment.content}
+                  <div className="text-sm text-brand-text leading-relaxed prose prose-invert prose-sm max-w-none prose-pre:bg-brand-code prose-pre:border prose-pre:border-brand-border">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {comment.content}
+                    </ReactMarkdown>
                   </div>
                 </div>
               </div>

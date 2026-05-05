@@ -42,11 +42,10 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
         if (voteError) throw voteError;
 
         // Update resources table score
-        await supabase.rpc('decrement_resource_score', { row_id: resourceId });
-        // Fallback if RPC not exists
-        await supabase.from('resources').update({ score: Math.max(0, score - 1) }).eq('id', resourceId);
+        const newScore = Math.max(0, score - 1);
+        await supabase.from('resources').update({ score: newScore }).eq('id', resourceId);
 
-        setScore(prev => Math.max(0, prev - 1));
+        setScore(newScore);
         setHasVoted(false);
       } else {
         // Add vote
@@ -57,13 +56,14 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
         if (voteError && voteError.code !== '23505') throw voteError;
 
         // Update resources table score
-        await supabase.from('resources').update({ score: score + 1 }).eq('id', resourceId);
+        const newScore = score + 1;
+        await supabase.from('resources').update({ score: newScore }).eq('id', resourceId);
 
         if (voteError?.code === '23505') {
-          // Already voted, just sync UI
+          // Already voted, just sync UI state without double counting
           setHasVoted(true);
         } else {
-          setScore(prev => prev + 1);
+          setScore(newScore);
           setHasVoted(true);
         }
       }
