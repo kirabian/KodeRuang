@@ -192,12 +192,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
           <div className="bg-brand-bg p-3 rounded font-mono text-[10px] text-brand-muted break-all">
             {error.message || 'Unknown Error'}
           </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-6 w-full bg-brand-primary text-brand-surface py-2 rounded-md font-bold"
-          >
-            Muat Ulang
-          </button>
         </div>
       </div>
     );
