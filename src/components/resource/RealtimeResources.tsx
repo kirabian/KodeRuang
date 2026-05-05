@@ -74,6 +74,10 @@ export default function RealtimeResources({
 
   const canModerated = userRole === 'admin' || userRole === 'moderator';
 
+  const handleManualDelete = (id: string) => {
+    setResources((current) => current.filter((item) => item.id !== id));
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {resources.length === 0 ? (
@@ -86,6 +90,7 @@ export default function RealtimeResources({
             key={resource.id} 
             resource={resource} 
             canDelete={canModerated}
+            onDelete={handleManualDelete}
           />
         ))
       )}

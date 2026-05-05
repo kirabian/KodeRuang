@@ -30,7 +30,15 @@ export type Resource = {
   has_voted?: boolean;
 };
 
-export default function ResourceCard({ resource, canDelete }: { resource: Resource, canDelete?: boolean }) {
+export default function ResourceCard({ 
+  resource, 
+  canDelete, 
+  onDelete 
+}: { 
+  resource: Resource, 
+  canDelete?: boolean,
+  onDelete?: (id: string) => void
+}) {
   const router = useRouter();
   const supabase = createClient();
   
@@ -56,7 +64,11 @@ export default function ResourceCard({ resource, canDelete }: { resource: Resour
       alert('Gagal menghapus: ' + error.message);
     } else {
       alert('Berhasil dihapus!');
-      router.refresh();
+      if (onDelete) {
+        onDelete(resource.id);
+      } else {
+        router.refresh();
+      }
     }
   };
 
