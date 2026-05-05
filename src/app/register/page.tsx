@@ -18,6 +18,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
       email,
       password,
       options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://koderuang.my.id'}/auth/callback`,
         data: {
           username,
           full_name: fullName,
