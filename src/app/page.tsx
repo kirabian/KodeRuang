@@ -1,21 +1,32 @@
 import ResourceCard from "@/components/resource/ResourceCard";
 import { Filter } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
 export const revalidate = 0; // Disable static caching for MVP
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ verified?: string }> }) {
-  const { verified } = await searchParams;
+export default async function Home({ searchParams }: { searchParams: Promise<{ verified?: string, sort?: string }> }) {
+  const { verified, sort = 'latest' } = await searchParams;
   const supabase = await createClient();
   
-  // Fetch from Supabase
-  const { data: resources, error } = await supabase
+  // Base query
+  let query = supabase
     .from('resources')
     .select(`
       *,
       submitted_by:profiles!inner(username, avatar_url)
-    `)
-    .order('created_at', { ascending: false });
+    `);
+
+  // Apply sorting
+  if (sort === 'trending' || sort === 'top') {
+    query = query.order('score', { ascending: false });
+  } else if (sort === 'discussed') {
+    query = query.order('comment_count', { ascending: false });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  const { data: resources, error } = await query;
 
   // For testing, if Supabase is empty, we fallback to an empty array
   // If there's an error, maybe the table isn't created yet
@@ -43,18 +54,38 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
           <h1 className="text-2xl font-bold text-brand-text">Resource Feed</h1>
           
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-            <button className="px-3 py-1.5 text-sm font-medium bg-brand-primary text-brand-surface rounded-md shrink-0">
+            <Link 
+              href="/?sort=latest"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
+                sort === 'latest' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
+              }`}
+            >
               Latest
-            </button>
-            <button className="px-3 py-1.5 text-sm font-medium text-brand-muted hover:bg-brand-bg hover:text-brand-text rounded-md transition-colors shrink-0">
+            </Link>
+            <Link 
+              href="/?sort=trending"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
+                sort === 'trending' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
+              }`}
+            >
               Trending
-            </button>
-            <button className="px-3 py-1.5 text-sm font-medium text-brand-muted hover:bg-brand-bg hover:text-brand-text rounded-md transition-colors shrink-0">
+            </Link>
+            <Link 
+              href="/?sort=top"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
+                sort === 'top' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
+              }`}
+            >
               Top Week
-            </button>
-            <button className="px-3 py-1.5 text-sm font-medium text-brand-muted hover:bg-brand-bg hover:text-brand-text rounded-md transition-colors shrink-0">
+            </Link>
+            <Link 
+              href="/?sort=discussed"
+              className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
+                sort === 'discussed' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
+              }`}
+            >
               Most Discussed
-            </button>
+            </Link>
           </div>
         </div>
 
