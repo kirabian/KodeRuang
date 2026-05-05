@@ -3,6 +3,7 @@ import { Resource } from '@/components/resource/ResourceCard';
 export const mockResources: Resource[] = [
   {
     id: "r1",
+    user_id: "u1",
     title: "Panduan Lengkap Next.js App Router untuk Pemula",
     url: "https://nextjs.org/docs/app",
     description: "Dokumentasi resmi dan panduan komprehensif cara menggunakan fitur terbaru dari Next.js yaitu App Router. Termasuk cara fetch data, routing, dan optimasi.",
@@ -17,6 +18,7 @@ export const mockResources: Resource[] = [
   },
   {
     id: "r2",
+    user_id: "u2",
     title: "Supabase: Alternatif Firebase Open Source dengan PostgreSQL",
     url: "https://supabase.com",
     description: "Database backend as a service yang sangat powerful dengan dukungan PostgreSQL, real-time subscriptions, dan built-in authentication.",
@@ -31,6 +33,7 @@ export const mockResources: Resource[] = [
   },
   {
     id: "r3",
+    user_id: "u3",
     title: "Kumpulan Boilerplate Auth Next.js + Tailwind + Supabase",
     url: "https://github.com/vercel/nextjs-subscription-payments",
     description: "Repository starter kit yang siap pakai untuk membuat aplikasi SaaS dengan fitur subscription dari Stripe dan autentikasi Supabase.",
@@ -45,6 +48,7 @@ export const mockResources: Resource[] = [
   },
   {
     id: "r4",
+    user_id: "u4",
     title: "Membuat Sistem Design yang Scalable dengan Tailwind v4",
     url: "https://tailwindcss.com/docs",
     description: "Artikel bagus tentang cara mendesain utility classes yang rapi dan maintainable di project berskala besar.",
@@ -59,6 +63,7 @@ export const mockResources: Resource[] = [
   },
   {
     id: "r5",
+    user_id: "u5",
     title: "Belajar TypeScript dari Nol sampai Mahir",
     url: "https://www.typescriptlang.org/docs/handbook/intro.html",
     description: "Tutorial lengkap memahami strict typing di JavaScript untuk menghindari runtime errors di production.",
