@@ -78,27 +78,27 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
     }
 
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
-        {/* Main Feed */}
-        <div className="flex-1 min-w-0">
-          {verified === 'true' && (
-            <div className="mb-6 p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-md flex items-center gap-3">
-              <div className="w-8 h-8 bg-brand-primary rounded-full flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-brand-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-brand-text">Akun Berhasil Diverifikasi!</h3>
-                <p className="text-sm text-brand-muted">Selamat datang di komunitas KodeRuang. Sekarang kamu bisa berbagi resource dan berdiskusi.</p>
-              </div>
+    <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+      {/* Main Feed */}
+      <div className="flex-1 min-w-0 w-full order-2 lg:order-1">
+        {verified === 'true' && (
+          <div className="mb-6 p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-md flex items-center gap-3">
+            <div className="w-8 h-8 bg-brand-primary rounded-full flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-brand-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-          )}
+            <div>
+              <h3 className="font-bold text-brand-text">Akun Berhasil Diverifikasi!</h3>
+              <p className="text-sm text-brand-muted">Selamat datang di komunitas KodeRuang. Sekarang kamu bisa berbagi resource dan berdiskusi.</p>
+            </div>
+          </div>
+        )}
 
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-brand-text">Resource Feed</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-brand-text">Resource Feed</h1>
 
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
               <Link
                 href="/?sort=latest"
                 className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
@@ -152,7 +152,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
         </div>
 
         {/* Sidebar */}
-        <div className="w-full lg:w-80 shrink-0 flex flex-col gap-6">
+        <div className="w-full lg:w-80 shrink-0 flex flex-col gap-6 order-1 lg:order-2">
           {/* User Profile / Community Info */}
           <div className="bg-brand-surface border border-brand-border rounded-md p-5">
             {user ? (
