@@ -53,7 +53,7 @@ export default function RealtimeResources({
             setResources((current) =>
               current.map((item) =>
                 item.id === updated.id
-                  ? { ...item, title: updated.title, description: updated.description, score: updated.score }
+                  ? { ...item, ...updated } // Ambil semua data terbaru termasuk score & comment_count
                   : item
               )
             );
