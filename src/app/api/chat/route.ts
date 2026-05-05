@@ -1,5 +1,5 @@
 import { groq } from '@ai-sdk/groq';
-import { streamText } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
-    messages,
+    messages: await convertToModelMessages(messages),
     system: "Kamu adalah asisten AI untuk komunitas developer KodeRuang. Tugasmu membantu menjawab pertanyaan seputar coding, debugging, dan resource teknologi. Jawablah menggunakan bahasa Indonesia yang santai tapi profesional.",
   });
 
