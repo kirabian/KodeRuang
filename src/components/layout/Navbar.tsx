@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Search, PlusCircle, User, Terminal, LogOut, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
-import NotificationBell from './NotificationBell';
+import NotificationBell from '@/components/layout/NotificationBell';
 
 export default async function Navbar() {
   let user = null;
