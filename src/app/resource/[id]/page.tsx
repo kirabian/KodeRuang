@@ -19,7 +19,9 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
       submitted_by:profiles (
         username,
         avatar_url
-      )
+      ),
+      votes(count),
+      comments(count)
     `)
     .eq('id', id)
     .single();
@@ -27,6 +29,10 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
   if (error || !resource) {
     return notFound();
   }
+
+  // Compute real counts from joined aggregates
+  const realScore = (resource as any).votes?.[0]?.count ?? resource.score ?? 0;
+  const realCommentCount = (resource as any).comments?.[0]?.count ?? resource.comment_count ?? 0;
 
   // Check if user has voted
   let initialHasVoted = false;
@@ -37,12 +43,12 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
       .eq('user_id', user.id)
       .eq('resource_id', id)
       .maybeSingle();
-    
+
     initialHasVoted = !!vote;
   }
 
-  // Fetch comments
-  const { data: comments } = await supabase
+  // Fetch comments with profiles
+  const { data: commentsList } = await supabase
     .from('comments')
     .select(`
       *,
@@ -60,10 +66,10 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
     <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
       {/* Detail Card */}
       <div className="bg-brand-surface border border-brand-border rounded-md p-6 sm:p-8 flex gap-6">
-        <UpvoteButton 
-          resourceId={resource.id} 
-          initialScore={resource.score} 
-          initialHasVoted={initialHasVoted} 
+        <UpvoteButton
+          resourceId={resource.id}
+          initialScore={realScore}
+          initialHasVoted={initialHasVoted}
         />
 
         <div className="flex-1 min-w-0">
@@ -88,7 +94,7 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
             <span>{formatDistanceToNow(new Date(resource.created_at), { addSuffix: true, locale: idLocale })}</span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
-              <MessageSquare size={16} /> {resource.comment_count} Komentar
+              <MessageSquare size={16} /> {realCommentCount} Komentar
             </span>
           </div>
 
@@ -99,8 +105,8 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
           <div className="flex flex-wrap items-center gap-2 mb-8">
             <span className="text-sm text-brand-muted mr-2">Tech Stack:</span>
             {resource.tech_stack_tags.map((tag: string) => (
-              <Link 
-                key={tag} 
+              <Link
+                key={tag}
                 href={`/stack/${tag.toLowerCase()}`}
                 className="text-sm font-mono text-brand-muted bg-brand-code px-2.5 py-1 rounded-md hover:bg-brand-border transition-colors"
               >
@@ -110,15 +116,15 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
           </div>
 
           <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-brand-border">
-            <a 
-              href={resource.url} 
-              target="_blank" 
+            <a
+              href={resource.url}
+              target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 bg-brand-primary text-brand-surface px-6 py-2.5 rounded-md font-medium hover:bg-brand-primary/90 transition-colors"
             >
               Kunjungi Resource <ExternalLink size={18} />
             </a>
-            
+
             <button className="flex items-center gap-2 px-4 py-2.5 text-brand-muted hover:text-brand-text hover:bg-brand-bg rounded-md transition-colors font-medium">
               <Share2 size={18} /> Bagikan
             </button>
@@ -129,10 +135,10 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      <CommentSection 
-        resourceId={resource.id} 
-        initialComments={comments || []} 
-        commentCount={resource.comment_count} 
+      <CommentSection
+        resourceId={resource.id}
+        initialComments={commentsList || []}
+        commentCount={realCommentCount}
       />
     </div>
   );

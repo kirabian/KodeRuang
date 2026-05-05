@@ -13,5 +13,5 @@ export async function POST(req: Request) {
     system: "Kamu adalah asisten AI untuk komunitas developer KodeRuang. Tugasmu membantu menjawab pertanyaan seputar coding, debugging, dan resource teknologi. Jawablah menggunakan bahasa Indonesia yang santai tapi profesional.",
   });
 
-  return result.toTextStreamResponse();
+  return result.toUIMessageStreamResponse();
 }

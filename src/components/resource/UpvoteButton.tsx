@@ -34,36 +34,44 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
     try {
       if (hasVoted) {
         // Remove vote
-        await supabase
+        const { error } = await supabase
           .from('votes')
           .delete()
           .match({ user_id: user.id, resource_id: resourceId });
+
+        if (error) {
+          console.error('Delete vote error:', error);
+          throw error;
+        }
+
+        // Optimistic UI: decrement score locally
+        setScore(prev => Math.max(0, prev - 1));
+        setHasVoted(false);
       } else {
         // Add vote
-        const { error: voteError } = await supabase
+        const { error } = await supabase
           .from('votes')
           .insert({ user_id: user.id, resource_id: resourceId, vote_type: 1 });
-        
-        if (voteError && voteError.code !== '23505') throw voteError;
+
+        if (error) {
+          if (error.code === '23505') {
+            // Already voted — sync UI to "voted" state
+            setHasVoted(true);
+          } else {
+            console.error('Insert vote error:', error);
+            throw error;
+          }
+        } else {
+          // Optimistic UI: increment score locally
+          setScore(prev => prev + 1);
+          setHasVoted(true);
+        }
       }
 
-      // SYNC: Get actual total count from votes table
-      const { count, error: countError } = await supabase
-        .from('votes')
-        .select('*', { count: 'exact', head: true })
-        .eq('resource_id', resourceId);
-
-      if (!countError && count !== null) {
-        // Update resources table score with real count
-        await supabase.from('resources').update({ score: count }).eq('id', resourceId);
-        setScore(count);
-        setHasVoted(!hasVoted);
-      }
-      
+      // Refresh server components to get real counts from DB
       router.refresh();
     } catch (error: any) {
       console.error('Error voting:', error.message);
-      // Rollback UI state if needed
     } finally {
       setLoading(false);
     }
@@ -71,18 +79,18 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
 
   return (
     <div className="flex flex-col items-center gap-1 shrink-0">
-      <button 
+      <button
         onClick={handleVote}
         disabled={loading}
         className={`p-1 rounded-md transition-colors group/vote ${
-          hasVoted 
-            ? 'text-brand-primary bg-brand-primary/10' 
+          hasVoted
+            ? 'text-brand-primary bg-brand-primary/10'
             : 'text-brand-muted hover:text-brand-primary hover:bg-brand-bg'
         }`}
       >
-        <ArrowUp 
-          size={24} 
-          className={`${hasVoted ? 'fill-current' : ''} group-hover/vote:-translate-y-0.5 transition-transform`} 
+        <ArrowUp
+          size={24}
+          className={`${hasVoted ? 'fill-current' : ''} group-hover/vote:-translate-y-0.5 transition-transform`}
         />
       </button>
       <span className={`font-bold text-sm ${hasVoted ? 'text-brand-primary' : 'text-brand-text'}`}>

@@ -8,28 +8,20 @@ export const revalidate = 0; // Disable static caching for MVP
 export default async function Home({ searchParams }: { searchParams: Promise<{ verified?: string, sort?: string }> }) {
   const { verified, sort = 'latest' } = await searchParams;
   const supabase = await createClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
-  
-  // Base query
-  let query = supabase
+
+  // Get resources with real vote & comment counts
+  const { data: resources, error } = await supabase
     .from('resources')
     .select(`
       *,
-      submitted_by:profiles!inner(username, avatar_url)
-    `);
+      submitted_by:profiles!inner(username, avatar_url),
+      votes(count),
+      comments(count)
+    `)
+    .order('created_at', { ascending: false });
 
-  // Apply sorting
-  if (sort === 'trending' || sort === 'top') {
-    query = query.order('score', { ascending: false });
-  } else if (sort === 'discussed') {
-    query = query.order('comment_count', { ascending: false });
-  } else {
-    query = query.order('created_at', { ascending: false });
-  }
-
-  const { data: resources, error } = await query;
-  
   // Get user votes if logged in
   let userVotes: string[] = [];
   if (user && resources) {
@@ -37,17 +29,32 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
       .from('votes')
       .select('resource_id')
       .eq('user_id', user.id)
-      .in('resource_id', resources.map(r => r.id));
-    
+      .in('resource_id', resources.map((r: any) => r.id));
+
     if (votes) {
-      userVotes = votes.map(v => v.resource_id);
+      userVotes = votes.map((v: any) => v.resource_id);
     }
   }
 
-  const displayResources = (resources || []).map(r => ({
-    ...r,
-    has_voted: userVotes.includes(r.id)
-  }));
+  // Build display resources with real counts
+  let displayResources = (resources || []).map((r: any) => {
+    const realScore = r.votes?.[0]?.count ?? r.score ?? 0;
+    const realCommentCount = r.comments?.[0]?.count ?? r.comment_count ?? 0;
+    return {
+      ...r,
+      score: realScore,
+      comment_count: realCommentCount,
+      has_voted: userVotes.includes(r.id)
+    };
+  });
+
+  // Apply sorting on the computed data
+  if (sort === 'trending' || sort === 'top') {
+    displayResources = displayResources.sort((a: any, b: any) => b.score - a.score);
+  } else if (sort === 'discussed') {
+    displayResources = displayResources.sort((a: any, b: any) => b.comment_count - a.comment_count);
+  }
+  // 'latest' is already sorted by created_at desc from the query
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
@@ -69,9 +76,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
 
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-brand-text">Resource Feed</h1>
-          
+
           <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
-            <Link 
+            <Link
               href="/?sort=latest"
               className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
                 sort === 'latest' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
@@ -79,7 +86,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
             >
               Latest
             </Link>
-            <Link 
+            <Link
               href="/?sort=trending"
               className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
                 sort === 'trending' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
@@ -87,7 +94,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
             >
               Trending
             </Link>
-            <Link 
+            <Link
               href="/?sort=top"
               className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
                 sort === 'top' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
@@ -95,7 +102,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
             >
               Top Week
             </Link>
-            <Link 
+            <Link
               href="/?sort=discussed"
               className={`px-3 py-1.5 text-sm font-medium rounded-md shrink-0 transition-colors ${
                 sort === 'discussed' ? 'bg-brand-primary text-brand-surface' : 'text-brand-muted hover:bg-brand-bg hover:text-brand-text'
@@ -112,7 +119,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
               Error loading resources: {error.message}
             </div>
           )}
-          
+
           {!error && displayResources.length === 0 && (
             <div className="p-8 text-center bg-brand-surface border border-brand-border rounded-md text-brand-muted">
               Belum ada resource. Jadilah yang pertama submit!

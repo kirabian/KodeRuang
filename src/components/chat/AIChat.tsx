@@ -6,46 +6,43 @@ import { MessageCircle, X, Send, Bot } from 'lucide-react';
 
 export default function AIChat() {
   const [isOpen, setIsOpen] = useState(false);
+  const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error, append } = useChat() as any;
+  const { messages, sendMessage, status, error } = useChat();
+
+  const isLoading = status === 'submitted' || status === 'streaming';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-    }
+    if (isOpen) scrollToBottom();
   }, [messages, isOpen]);
 
-  const sendMessage = async () => {
-    if (!input?.trim() || isLoading) return;
-    
-    const content = input.trim();
-    // Clear input immediately for better UX
-    handleInputChange({ target: { value: '' } } as any);
-    
-    try {
-      await append({
-        role: 'user',
-        content
-      });
-    } catch (e) {
-      console.error('AIChat: Send failed', e);
-    }
+  const handleSend = () => {
+    const text = inputText.trim();
+    if (!text || isLoading) return;
+    setInputText('');
+    sendMessage({ text });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSend();
     }
   };
 
-  const manualSubmit = () => {
-    console.log('AIChat: Manual button click trigger');
-    sendMessage();
+  // Helper to extract text from message parts
+  const getMessageText = (msg: any): string => {
+    if (msg.parts && Array.isArray(msg.parts)) {
+      return msg.parts
+        .filter((p: any) => p.type === 'text')
+        .map((p: any) => p.text)
+        .join('');
+    }
+    return msg.content || '';
   };
 
   return (
@@ -79,7 +76,7 @@ export default function AIChat() {
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => setIsOpen(false)}
             className="text-brand-muted hover:text-brand-text transition-colors"
           >
@@ -98,14 +95,14 @@ export default function AIChat() {
               <p className="text-[11px] text-brand-muted">Tanyakan seputar coding, teknologi, atau bantuan navigasi di KodeRuang.</p>
             </div>
           )}
-          {messages.map((m: any) => (
+          {messages.map((m) => (
             <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] px-3 py-2 rounded-lg text-sm ${
-                m.role === 'user' 
-                  ? 'bg-brand-primary text-brand-surface rounded-br-none shadow-sm' 
+              <div className={`max-w-[85%] px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${
+                m.role === 'user'
+                  ? 'bg-brand-primary text-brand-surface rounded-br-none shadow-sm'
                   : 'bg-brand-surface border border-brand-border text-brand-text rounded-bl-none shadow-sm'
               }`}>
-                {m.content}
+                {getMessageText(m)}
               </div>
             </div>
           ))}
@@ -122,35 +119,27 @@ export default function AIChat() {
           )}
           {error && (
             <div className="text-center text-xs text-brand-accent p-2 bg-brand-accent/10 rounded-md border border-brand-accent/20">
-              Maaf, terjadi gangguan koneksi.
+              Maaf, terjadi gangguan: {error.message}
             </div>
           )}
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Form */}
-        <form 
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (input.trim() && !isLoading) {
-              handleSubmit(e);
-            }
-          }} 
-          className="p-3 border-t border-brand-border bg-brand-surface flex gap-2 relative z-[200]"
-        >
+        {/* Input */}
+        <div className="p-3 border-t border-brand-border bg-brand-surface flex gap-2">
           <input
             className="flex-1 bg-brand-bg border border-brand-border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary text-brand-text min-w-0"
-            value={input}
+            value={inputText}
             placeholder="Tanya sesuatu..."
-            onChange={handleInputChange}
+            onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
           />
           <button
             type="button"
-            onClick={manualSubmit}
-            disabled={isLoading || !input?.trim()}
-            className="w-10 h-10 bg-brand-primary text-brand-surface rounded-md disabled:opacity-50 hover:bg-brand-primary/90 transition-all cursor-pointer active:scale-95 flex items-center justify-center shrink-0 pointer-events-auto shadow-sm"
+            onClick={handleSend}
+            disabled={isLoading || !inputText.trim()}
+            className="w-10 h-10 bg-brand-primary text-brand-surface rounded-md disabled:opacity-50 hover:bg-brand-primary/90 transition-all cursor-pointer active:scale-95 flex items-center justify-center shrink-0"
           >
             {isLoading ? (
               <div className="w-4 h-4 border-2 border-brand-surface border-t-transparent rounded-full animate-spin"></div>
@@ -158,7 +147,7 @@ export default function AIChat() {
               <Send size={20} />
             )}
           </button>
-        </form>
+        </div>
       </div>
     </>
   );
