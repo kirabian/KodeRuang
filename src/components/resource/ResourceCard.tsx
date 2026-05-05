@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { ArrowUp, MessageSquare, ExternalLink } from 'lucide-react';
+import { MessageSquare, ExternalLink } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
+import UpvoteButton from './UpvoteButton';
 
 export type Resource = {
   id: string;
@@ -27,12 +28,7 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
   return (
     <div className="flex gap-4 p-4 bg-brand-surface border border-brand-border rounded-md hover:border-brand-primary/30 transition-colors group">
       {/* Upvote Column */}
-      <div className="flex flex-col items-center gap-1 shrink-0">
-        <button className="p-1 text-brand-muted hover:text-brand-primary hover:bg-brand-bg rounded-md transition-colors group/vote">
-          <ArrowUp size={24} className="group-hover/vote:-translate-y-0.5 transition-transform" />
-        </button>
-        <span className="font-bold text-brand-text text-sm">{resource.score}</span>
-      </div>
+      <UpvoteButton resourceId={resource.id} initialScore={resource.score} />
 
       {/* Content Column */}
       <div className="flex-1 min-w-0">
@@ -67,7 +63,7 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {resource.tech_stack_tags.slice(0, 3).map((tag) => (
+            {resource.tech_stack_tags.map((tag) => (
               <Link 
                 key={tag} 
                 href={`/stack/${tag.toLowerCase()}`}
@@ -76,11 +72,6 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
                 #{tag}
               </Link>
             ))}
-            {resource.tech_stack_tags.length > 3 && (
-              <span className="text-xs font-mono text-brand-muted bg-brand-code px-2 py-0.5 rounded-md">
-                +{resource.tech_stack_tags.length - 3}
-              </span>
-            )}
           </div>
 
           <div className="ml-auto flex items-center gap-4">

@@ -10,6 +10,7 @@ export default function AIChat() {
 
   const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log('AIChat: Form submitted with input:', input);
     if (!input.trim() || isLoading) return;
     handleSubmit(e);
   };

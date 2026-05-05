@@ -1,24 +1,38 @@
-import { mockResources } from "@/lib/dummyData";
-import { ArrowUp, MessageSquare, ExternalLink, Share2, Flag, Terminal } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { MessageSquare, ExternalLink, Share2, Flag, Terminal } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
+import { notFound } from "next/navigation";
+import UpvoteButton from "@/components/resource/UpvoteButton";
 
 export default async function ResourceDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const resource = mockResources.find((r) => r.id === id) || mockResources[0];
+  const supabase = await createClient();
+  
+  const { data: resource, error } = await supabase
+    .from('resources')
+    .select(`
+      *,
+      submitted_by:profiles (
+        username,
+        avatar_url
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error || !resource) {
+    return notFound();
+  }
+
   const domain = new URL(resource.url).hostname.replace('www.', '');
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
       {/* Detail Card */}
       <div className="bg-brand-surface border border-brand-border rounded-md p-6 sm:p-8 flex gap-6">
-        <div className="flex flex-col items-center gap-2 shrink-0">
-          <button className="p-2 text-brand-muted hover:text-brand-primary hover:bg-brand-bg rounded-md transition-colors border border-transparent hover:border-brand-border group/vote">
-            <ArrowUp size={28} className="group-hover/vote:-translate-y-1 transition-transform" />
-          </button>
-          <span className="font-bold text-brand-text text-lg">{resource.score}</span>
-        </div>
+        <UpvoteButton resourceId={resource.id} initialScore={resource.score} />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-3">
@@ -95,14 +109,15 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
           <div className="flex-1">
             <textarea 
               rows={4}
-              placeholder="Tambahkan komentar. Mendukung Markdown dan code block..." 
-              className="w-full bg-brand-bg border border-brand-border rounded-md py-3 px-4 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-brand-text resize-y font-mono mb-3"
+              placeholder="Tambahkan komentar (Segera hadir...)" 
+              disabled
+              className="w-full bg-brand-bg border border-brand-border rounded-md py-3 px-4 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-brand-text resize-y font-mono mb-3 opacity-50"
             />
             <div className="flex justify-between items-center">
               <span className="text-xs text-brand-muted">
-                Tip: Gunakan ``` untuk menulis kode.
+                Sistem komentar sedang dalam pengembangan.
               </span>
-              <button className="px-5 py-2 text-sm font-medium bg-brand-primary text-brand-surface rounded-md hover:bg-brand-primary/90 transition-colors">
+              <button disabled className="px-5 py-2 text-sm font-medium bg-brand-primary text-brand-surface rounded-md opacity-50 cursor-not-allowed">
                 Kirim Komentar
               </button>
             </div>
@@ -110,45 +125,8 @@ export default async function ResourceDetail({ params }: { params: Promise<{ id:
         </div>
 
         {/* Comment List */}
-        <div className="space-y-6">
-          {/* Dummy Comment */}
-          <div className="flex gap-4">
-            <div className="w-10 h-10 rounded-full bg-brand-bg border border-brand-border flex items-center justify-center shrink-0">
-              <span className="text-brand-text font-bold">AL</span>
-            </div>
-            <div className="flex-1">
-              <div className="bg-brand-bg border border-brand-border rounded-md p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="font-bold text-brand-text">alex_dev</span>
-                  <span className="text-xs text-brand-muted">2 jam yang lalu</span>
-                </div>
-                <div className="text-sm text-brand-text leading-relaxed">
-                  <p className="mb-2">Resource yang sangat bagus! Saya sudah mencobanya di project terbaru saya.</p>
-                  <p>Ini contoh implementasinya jika menggunakan TypeScript:</p>
-                  <pre className="bg-brand-code p-3 rounded-md mt-2 border border-brand-border overflow-x-auto">
-                    <code className="text-xs font-mono text-brand-text">
-{`interface User {
-  id: string;
-  name: string;
-}
-
-const getUser = async (id: string): Promise<User> => {
-  // Fetch logic here
-}`}
-                    </code>
-                  </pre>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 mt-2 px-2">
-                <button className="text-xs font-medium text-brand-muted hover:text-brand-text flex items-center gap-1">
-                  <ArrowUp size={14} /> 12
-                </button>
-                <button className="text-xs font-medium text-brand-muted hover:text-brand-text">
-                  Balas
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="text-center py-12 text-brand-muted border-t border-brand-border border-dashed">
+          <p>Belum ada komentar untuk resource ini.</p>
         </div>
       </div>
     </div>
