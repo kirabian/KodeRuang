@@ -1,3 +1,6 @@
+'use client';
+
+import Link from 'next/link';
 import { MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';

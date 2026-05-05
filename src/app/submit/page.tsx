@@ -22,6 +22,8 @@ function isTrustedDomain(url: string) {
     return false;
   }
 }
+
+export default function SubmitPage() {
   const supabase = createClient();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
