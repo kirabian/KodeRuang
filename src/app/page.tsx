@@ -12,13 +12,24 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
 
     const { data: userData } = await supabase.auth.getUser();
     const user = userData?.user;
+    
+    // Fetch user profile for role and reputation
+    let userProfile = null;
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, reputation')
+        .eq('id', user.id)
+        .single();
+      userProfile = profile;
+    }
 
     // Get resources with real vote & comment counts
     const { data: resources, error: fetchError } = await supabase
       .from('resources')
       .select(`
         *,
-        submitted_by:profiles(username, avatar_url),
+        submitted_by:profiles(username, avatar_url, reputation),
         votes(count),
         comments(count)
       `)
@@ -124,29 +135,67 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
             )}
 
             {displayResources.map((resource: any) => (
-              <ResourceCard key={resource.id} resource={resource} />
+              <ResourceCard 
+                key={resource.id} 
+                resource={resource} 
+                canDelete={userProfile?.role === 'admin' || userProfile?.role === 'moderator' || user?.id === resource.user_id}
+              />
             ))}
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="w-full lg:w-80 shrink-0 flex flex-col gap-6">
-          {/* About Community */}
+          {/* User Profile / Community Info */}
           <div className="bg-brand-surface border border-brand-border rounded-md p-5">
-            <h2 className="font-bold text-brand-text mb-2">Tentang KodeRuang</h2>
-            <p className="text-sm text-brand-muted leading-relaxed">
-              Platform komunitas untuk developer Indonesia berbagi resource bermanfaat seperti artikel teknis, repository, library, dan tools.
-            </p>
+            {user ? (
+              <>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-brand-bg rounded-full border border-brand-border flex items-center justify-center text-xl font-bold text-brand-primary uppercase">
+                    {user.email?.[0]}
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-brand-text leading-tight">{user.email?.split('@')[0]}</h2>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] font-bold tracking-widest uppercase px-1.5 py-0.5 rounded-sm bg-brand-primary/10 text-brand-primary">
+                        {userProfile?.role || 'User'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 pt-3 border-t border-brand-border/50">
+                   <div className="flex justify-between items-center text-sm">
+                    <span className="text-brand-muted">Reputation</span>
+                    <span className="font-bold text-brand-text">{userProfile?.reputation || 0} Rep</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="font-bold text-brand-text mb-2">Tentang KodeRuang</h2>
+                <p className="text-sm text-brand-muted leading-relaxed">
+                  Platform komunitas untuk developer Indonesia berbagi resource bermanfaat seperti artikel teknis, repository, library, dan tools.
+                </p>
+              </>
+            )}
+            
             <div className="mt-4 pt-4 border-t border-brand-border flex flex-col gap-2">
               <div className="justify-between flex items-center text-sm">
                 <span className="text-brand-muted">Total Resource</span>
                 <span className="font-bold text-brand-text">{displayResources.length}</span>
               </div>
               <div className="justify-between flex items-center text-sm">
-                <span className="text-brand-muted">Active Developer</span>
-                <span className="font-bold text-brand-text">1</span>
+                <span className="text-brand-muted">Active Member</span>
+                <span className="font-bold text-brand-text">324</span>
               </div>
             </div>
+            
+            {!user && (
+              <Link href="/register" className="mt-5 block w-full py-2 bg-brand-primary text-brand-surface text-center rounded-md font-bold text-sm hover:bg-brand-primary/90 transition-colors">
+                Gabung Komunitas
+              </Link>
+            )}
           </div>
 
           {/* Popular Categories */}
@@ -160,7 +209,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ v
                 <a key={cat} href={`/category/${cat.toLowerCase()}`} className="flex justify-between items-center text-sm py-1.5 px-2 -mx-2 hover:bg-brand-bg rounded-md transition-colors group">
                   <span className="text-brand-text group-hover:text-brand-primary">{cat}</span>
                   <span className="text-xs text-brand-muted bg-brand-code px-1.5 py-0.5 rounded-sm">
-                    -
+                    {displayResources.filter(r => r.category === cat).length}
                   </span>
                 </a>
               ))}

@@ -1,8 +1,10 @@
-import Link from 'next/link';
-import { MessageSquare, ExternalLink } from 'lucide-react';
+import { MessageSquare, ExternalLink, Trash2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import UpvoteButton from './UpvoteButton';
+import { getTierFromPoints } from '@/lib/utils/tiers';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export type Resource = {
   id: string;
@@ -13,9 +15,11 @@ export type Resource = {
   difficulty_level: 'Beginner' | 'Intermediate' | 'Advanced' | 'All';
   category: string;
   tech_stack_tags: string[];
+  user_id: string;
   submitted_by: {
     username: string;
     avatar_url?: string;
+    reputation?: number;
   };
   score: number;
   comment_count: number;
@@ -23,7 +27,10 @@ export type Resource = {
   has_voted?: boolean;
 };
 
-export default function ResourceCard({ resource }: { resource: Resource }) {
+export default function ResourceCard({ resource, canDelete }: { resource: Resource, canDelete?: boolean }) {
+  const router = useRouter();
+  const supabase = createClient();
+  
   let domain = 'link';
   try {
     domain = new URL(resource.url).hostname.replace('www.', '');
@@ -32,9 +39,25 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
   }
 
   const username = resource.submitted_by?.username || 'anonim';
+  const userTier = getTierFromPoints(resource.submitted_by?.reputation || 0);
+
+  const handleDelete = async () => {
+    if (!confirm('Apakah kamu yakin ingin menghapus resource ini?')) return;
+    
+    const { error } = await supabase
+      .from('resources')
+      .delete()
+      .eq('id', resource.id);
+      
+    if (error) {
+      alert('Gagal menghapus: ' + error.message);
+    } else {
+      router.refresh();
+    }
+  };
 
   return (
-    <div className="flex gap-4 p-4 bg-brand-surface border border-brand-border rounded-md hover:border-brand-primary/30 transition-colors group">
+    <div className="flex gap-4 p-4 bg-brand-surface border border-brand-border rounded-md hover:border-brand-primary/30 transition-colors group relative">
       {/* Upvote Column */}
       <UpvoteButton 
         resourceId={resource.id} 
@@ -49,9 +72,12 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
             {domain}
           </span>
           <span className="text-xs text-brand-muted">•</span>
-          <span className="text-xs text-brand-muted">
-            oleh <Link href={`/user/${username}`} className="hover:text-brand-primary font-medium">{username}</Link>
-          </span>
+          <div className="flex items-center gap-1.5">
+            <Link href={`/user/${username}`} className="text-xs hover:text-brand-primary font-medium text-brand-muted">{username}</Link>
+            <span className={`text-[10px] font-bold ${userTier.color}`}>
+              [{userTier.name}]
+            </span>
+          </div>
           <span className="text-xs text-brand-muted">•</span>
           <span className="text-xs text-brand-muted">
             {formatDistanceToNow(new Date(resource.created_at), { addSuffix: true, locale: id })}
@@ -103,6 +129,16 @@ export default function ResourceCard({ resource }: { resource: Resource }) {
               <ExternalLink size={16} />
               <span className="font-medium">Kunjungi</span>
             </a>
+            
+            {canDelete && (
+              <button 
+                onClick={handleDelete}
+                className="p-1 text-brand-muted hover:text-brand-accent transition-colors"
+                title="Hapus Resource"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -5,7 +5,23 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import SubmitButton from '@/components/ui/SubmitButton';
 
-export default function SubmitPage() {
+const TRUSTED_DOMAINS = [
+  'github.com', 'gitlab.com', 'bitbucket.org', 
+  'medium.com', 'dev.to', 'hashnode.com', 
+  'stackoverflow.com', 'npmjs.com', 'pypi.org',
+  'youtube.com', 'vimeo.com', 'documentation',
+  'microsoft.com', 'google.com', 'apple.com',
+  'mozilla.org', 'w3schools.com', 'freecodecamp.org'
+];
+
+function isTrustedDomain(url: string) {
+  try {
+    const hostname = new URL(url).hostname.replace('www.', '');
+    return TRUSTED_DOMAINS.some(d => hostname === d || hostname.endsWith('.' + d));
+  } catch {
+    return false;
+  }
+}
   const supabase = createClient();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -87,18 +103,27 @@ export default function SubmitPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">URL <span className="text-brand-accent">*</span></label>
-              <input 
-                name="url"
-                type="url" 
-                value={formData.url}
-                onChange={handleChange}
-                placeholder="https://" 
-                className="w-full bg-brand-bg border border-brand-border rounded-md py-2 px-3 text-sm focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all text-brand-text"
-                required
-              />
-            </div>
+    <div>
+      <label className="block text-sm font-medium text-brand-text mb-1.5">URL <span className="text-brand-accent">*</span></label>
+      <input 
+        name="url"
+        type="url" 
+        value={formData.url}
+        onChange={handleChange}
+        placeholder="https://" 
+        className={`w-full bg-brand-bg border rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-1 transition-all text-brand-text ${
+          formData.url && !isTrustedDomain(formData.url) 
+            ? 'border-yellow-500/50 focus:border-yellow-500 focus:ring-yellow-500' 
+            : 'border-brand-border focus:border-brand-primary focus:ring-brand-primary'
+        }`}
+        required
+      />
+      {formData.url && !isTrustedDomain(formData.url) && (
+        <p className="text-[10px] text-yellow-500 mt-1 flex items-center gap-1 italic">
+          ⚠️ Domain ini belum terverifikasi oleh komunitas. Pastikan link aman.
+        </p>
+      )}
+    </div>
 
             <div>
               <label className="block text-sm font-medium text-brand-text mb-1.5">Judul <span className="text-brand-accent">*</span></label>
