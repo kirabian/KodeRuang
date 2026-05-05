@@ -3,8 +3,14 @@ import { Search, PlusCircle, User, Terminal, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function Navbar() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const supabase = await createClient();
+    const { data: userData } = await supabase.auth.getUser();
+    user = userData?.user;
+  } catch (e) {
+    console.error("Navbar auth error:", e);
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-brand-surface border-b border-brand-border z-50">
