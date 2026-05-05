@@ -41,8 +41,12 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
 
         if (voteError) throw voteError;
 
-        // Decrement score (UI only for now, real app should use RPC)
-        setScore(prev => prev - 1);
+        // Update resources table score
+        await supabase.rpc('decrement_resource_score', { row_id: resourceId });
+        // Fallback if RPC not exists
+        await supabase.from('resources').update({ score: Math.max(0, score - 1) }).eq('id', resourceId);
+
+        setScore(prev => Math.max(0, prev - 1));
         setHasVoted(false);
       } else {
         // Add vote
@@ -50,10 +54,18 @@ export default function UpvoteButton({ resourceId, initialScore, initialHasVoted
           .from('votes')
           .insert({ user_id: user.id, resource_id: resourceId, vote_type: 1 });
 
-        if (voteError) throw voteError;
+        if (voteError && voteError.code !== '23505') throw voteError;
 
-        setScore(prev => prev + 1);
-        setHasVoted(true);
+        // Update resources table score
+        await supabase.from('resources').update({ score: score + 1 }).eq('id', resourceId);
+
+        if (voteError?.code === '23505') {
+          // Already voted, just sync UI
+          setHasVoted(true);
+        } else {
+          setScore(prev => prev + 1);
+          setHasVoted(true);
+        }
       }
       
       router.refresh();
